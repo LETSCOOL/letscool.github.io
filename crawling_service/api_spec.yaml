@@ -1,0 +1,155 @@
+openapi: "3.0.2"
+info:
+  title: Crawling Service
+  version: "1.0"
+servers:
+  - url: https://api.server.test/v1
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    crawl_req:
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          description: "a url which is wanted to crawl"
+          example: "https://www.apple.com"
+        depth:
+          type: integer
+          default: 0
+        max_depth:
+          type: integer
+          default: 10
+          maximum: 100
+        session_id:
+          type: string
+          example: "6363fe744f74ee8f280958ab2f185dde"
+          description: "A unique id which will be generated internally, and it is used to trace a crawling session/flow."
+    crawl_resp:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [exist, apply]
+        session_id:
+          type: string
+          example: "6363fe744f74ee8f280958ab2f185dde"
+          description: "A unique id which will be generated internally, and it is used to trace a crawling session/flow."
+    sess_req:
+      type: object
+      required:
+        - session_id
+      properties:
+        session_id:
+          type: string
+          example: "6363fe744f74ee8f280958ab2f185dde"
+          description: "A unique id which will be generated internally, and it is used to trace a crawling session/flow."
+    simple_resp:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [done]
+    result_resp:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [done]
+        data:
+          type: object
+          description: More detailed analysis.
+    UnauthorizedError:
+      description: Access token is missing or invalid.
+
+paths:
+  /crawl:
+    post:
+      security:
+        - bearerAuth: []
+      description: "Start to crawl a web page."
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/crawl_req"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/crawl_resp"
+        "401":
+          $ref: "#/components/schemas/UnauthorizedError"
+  /pause:
+    post:
+      security:
+        - bearerAuth: []
+      description: "Pause a crawling task group."
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/sess_req"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/simple_resp"
+        "401":
+          $ref: "#/components/schemas/UnauthorizedError"
+  /resume:
+    post:
+      security:
+        - bearerAuth: []
+      description: "Resume a crawling task group."
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/sess_req"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/simple_resp"
+        "401":
+          $ref: "#/components/schemas/UnauthorizedError"
+  /get_result:
+    post:
+      security:
+        - bearerAuth: []
+      description: "Pause a crawling task group."
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/sess_req"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/result_resp"
+        "401":
+          $ref: "#/components/schemas/UnauthorizedError"
